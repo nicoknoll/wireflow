@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+	<form method="post" action="">
+		{% for param_out in params_out %}
+		<div>
+			<label for="{{ param_out }}">{{ param_out }}</label>
+			<input type="text" name="{{ param_out }}">
+		</div>
+		{% endfor %}
+		<input type="submit">
+	</form>
+
+</body>
+</html>
