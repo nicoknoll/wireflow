@@ -3,7 +3,7 @@ from functools import partial
 from .exception import FlowRuntimeError
 from .flow import Flow
 from .module import ModuleStatus, ANY_PARAMS
-from .util import cached_property, Storable
+from .util import cached_property, Storable, get_reverse_relation
 
 
 class ModuleState(Storable):
@@ -55,10 +55,8 @@ class Runner(Storable):
 
 	@cached_property
 	def states(self):
-		keys = self.storage.get_reverse_keys(self.id)
-		keys = [k for k in keys if k.split(':')[1].startswith(ModuleState.prefix)]
-		modules = [ModuleState.load(k) for k in keys]
-		return {m.module_id: m for m in modules}
+		states = get_reverse_relation(self.id, ModuleState)
+		return {s.module_id: s for s in states}
 
 	def run(self, module_id):
 		module_id = getattr(module_id, 'id', module_id)
@@ -70,7 +68,11 @@ class Runner(Storable):
 
 		try:
 			callback = partial(self.complete, module_id)
-			module.module_class._run(callback, **state.kwargs)
+			module.module_class._run(
+				callback,
+				config=module.config,
+				**state.kwargs
+			)
 
 		except Exception as e:
 			state.status = ModuleStatus.ERROR

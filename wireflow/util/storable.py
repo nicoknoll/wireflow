@@ -35,3 +35,7 @@ class Storable:
         return cls.storage.load(key, instance_cls=cls)
 
 
+def get_reverse_relation(key, rel_cls):
+    keys = rel_cls.storage.get_reverse_keys(key)
+    keys = [k for k in keys if k.split(':')[1].startswith(rel_cls.prefix)]
+    return [rel_cls.load(k) for k in keys]

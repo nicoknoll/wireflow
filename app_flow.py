@@ -1,12 +1,12 @@
 from os.path import join, dirname, abspath
 
-from wireflow import config
+from wireflow import config as global_config
 from wireflow.flow import Flow
 from wireflow.module import Module, module_registry
 from wireflow.runner import Runner
 
-config.STORAGE = 'wireflow.storage.backends.filesystem.FileSystemStorage'
-config.FILE_STORAGE_ROOT = join(dirname(abspath(__file__)), '_tmp')
+global_config.STORAGE = 'wireflow.storage.backends.memory.MemoryStorage'
+global_config.FILE_STORAGE_ROOT = join(dirname(abspath(__file__)), '_tmp')
 
 
 @module_registry.register
@@ -15,7 +15,7 @@ class RandomTextModule(Module):
     params_out = ['text']
 
     @classmethod
-    def run(cls):
+    def run(cls, config=None):
         return {'text': 'Random string'}
 
 
@@ -25,7 +25,7 @@ class CaseModule(Module):
     params_out = ['upper', 'lower']
 
     @classmethod
-    def run(cls, text=''):
+    def run(cls, config=None, text=''):
         return {'upper': text.upper(), 'lower': text.lower()}
 
 
@@ -34,13 +34,11 @@ class PrintModule(Module):
     params_in = ['text']
     params_out = []
 
-    default_config = {
-        'prefix': 'NO NICO'
-    }
+    default_config = {}
 
     @classmethod
-    def run(cls, text=''):
-        print(text)
+    def run(cls, config=None, text=''):
+        print(config['prefix'] + text)
 
 
 @module_registry.register
@@ -49,7 +47,7 @@ class ConcatModule(Module):
     params_out = ['text']
 
     @classmethod
-    def run(cls, text1='', text2=''):
+    def run(cls, config=None, text1='', text2=''):
         return {
             'text': text1 + text2
         }
@@ -62,7 +60,7 @@ class AsyncModule(Module):
     is_async = True
 
     @classmethod
-    def run(cls, text=''):
+    def run(cls, config=None, text=''):
         # send request with data to external server
         print('Please enter data at: http://127.0.0.1:5000/tasks/data-entry')
 
@@ -72,7 +70,7 @@ flow.store()
 
 start = flow.add(RandomTextModule)
 m1 = flow.add(CaseModule)
-m2 = flow.add(PrintModule, config={'prefix': 'YEAH NICO'})
+m2 = flow.add(PrintModule)
 m3 = flow.add(PrintModule)
 
 async_module = flow.add(AsyncModule)

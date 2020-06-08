@@ -24,7 +24,7 @@ class Module:
 		return set(cls.params_in).issubset(set(kwargs.keys()))
 
 	@classmethod
-	def run(cls, **kwargs):
+	def run(cls, config=None, **kwargs):
 		raise NotImplementedError
 
 	@classmethod

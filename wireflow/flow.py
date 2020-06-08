@@ -1,6 +1,6 @@
 from .exception import FlowConfigurationError
 from .module import ANY_PARAMS, module_registry
-from .util import format_class_name, cached_property, Storable
+from .util import format_class_name, cached_property, Storable, get_reverse_relation
 
 
 def _validate_mapping(module_from, module_to, mapping):
@@ -10,13 +10,13 @@ def _validate_mapping(module_from, module_to, mapping):
 	module_params_out = set(module_from.get_params_out())
 	module_params_in = set(module_to.get_params_in())
 
-	# module.params_out >= mappping.params_out
+	# module.params_out >= mapping.params_out
 	if ANY_PARAMS not in module_params_out and not params_out.issubset(module_params_out):
 		raise FlowConfigurationError('Cannot connect: {} is not subset of {}'.format(
 			params_out, module_params_out
 		))
 
-	# module.params_in >= mappping.params_in
+	# module.params_in >= mapping.params_in
 	if ANY_PARAMS not in module_params_in and not params_in.issubset(set(module_params_in)):
 		raise FlowConfigurationError('Cannot connect: {} is not subset of {}'.format(
 			params_in, module_params_in
@@ -131,19 +131,15 @@ class Flow(Storable):
 
 	@cached_property
 	def modules(self):
-		keys = self.storage.get_reverse_keys(self.id)
-		keys = [k for k in keys if k.split(':')[1].startswith(FlowModule.prefix)]
-		modules = [FlowModule.load(k) for k in keys]
+		modules = get_reverse_relation(self.id, FlowModule)
 		return {m.id: m for m in modules}
 
 	@cached_property
 	def connections(self):
-		keys = self.storage.get_reverse_keys(self.id)
-		keys = [k for k in keys if k.split(':')[1].startswith(Connection.prefix)]
+		connections = get_reverse_relation(self.id, Connection)
+		mapping = {k: [] for k in self.modules.keys()}
 
-		connections = {k: [] for k in self.modules.keys()}
-		for k in keys:
-			connection = Connection.load(k)
-			connections[connection.module_from_id].append(connection)
+		for c in connections:
+			mapping[c.module_from_id].append(c)
 
-		return connections
+		return mapping

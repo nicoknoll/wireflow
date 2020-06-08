@@ -20,12 +20,6 @@ class RedisStorage(Storage):
         return json.dumps(decoded)
 
     @classmethod
-    def _init_instance(cls, instance_cls, state):
-        instance = instance_cls.__new__(instance_cls)
-        instance.__setstate__(state)
-        return instance
-
-    @classmethod
     def get_reverse_keys(cls, rel):
         return [k.decode('utf-8') for k in cls._storage.scan_iter(f'{rel}:*')]
 
