@@ -17,3 +17,8 @@ Sample in `app_flow.py`.
 flask run
 ```
 
+
+
+## TODO
+[ ] Nested paths in mapping (e.g. order.items.0.title)
+[ ] Locks in storage backends
